@@ -18,13 +18,14 @@ build:
 
 requirements:
   host:
-    - python >=3.5
+    - python
     - pip
     - setuptools >=44
     - setuptools_scm >=3.4.3
     - toml
+    - wheel
   run:
-    - python >=3.5
+    - python
     - six
 
 test:
@@ -38,6 +39,7 @@ about:
   license_file: LICENSE
   summary: The asttokens module annotates Python abstract syntax trees (ASTs) with the positions of tokens and text in the source code that generated them.
   dev_url: https://github.com/gristlabs/asttokens
+  doc_url: https://asttokens.readthedocs.io/en/latest/index.html
 
 extra:
   recipe-maintainers:
