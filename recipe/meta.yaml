@@ -27,6 +27,8 @@ requirements:
     - wheel
   run:
     - python
+  run_constrained:
+    - astroid >=2, <4
 
 test:
   imports:
