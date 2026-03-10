@@ -1,21 +1,18 @@
 {% set name = "asttokens" %}
-{% set version = "3.0.0" %}
+{% set version = "3.0.1" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  fn: {{ name }}-{{ version }}.tar.gz
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 0dcd8baa8d62b0c1d118b399b2ddba3c4aff271d0d7a9e0d4c1681c79035bbc7
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 71a4ee5de0bde6a31d64f6b13f2293ac190344478f081c3d1bccfcf5eacb0cb7
 
 build:
   number: 0
   script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation --ignore-installed --no-cache-dir -vv
   skip: true  # [py<38]
-  script_env:
-    - SETUPTOOLS_SCM_PRETEND_VERSION={{version}}
 
 requirements:
   host:
@@ -28,15 +25,29 @@ requirements:
   run:
     - python
   run_constrained:
-    - astroid >=2, <4
+    - astroid >=2,<5
+
+{% set deselect_tests = "" %}
+# E   AssertionError: 'ast.Expr(value=ast.Constant(value=str()' != 'ast.Expr(value=ast.Constant(value=str() as doc))'
+# E   - ast.Expr(value=ast.Constant(value=str()
+# E   + ast.Expr(value=ast.Constant(value=str() as doc))]
+{% set deselect_tests = "--deselect=tests/test_astroid.py::TestAstroid::test_sys_modules" %}  # [py<314]
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_mark_tokens.py::TestMarkTokens::test_sys_modules" %}  # [py<314]
+# E   ModuleNotFoundError: No module named 'astroid.suppliermodule_test'
+{% set ignore_tests = "--ignore=tests/testdata" %}
 
 test:
+  source_files:
+    - tests
   imports:
     - asttokens
   requires:
     - pip
+    - pytest
+    - astroid
   commands:
     - pip check
+    - pytest -v tests {{ ignore_tests }} {{ deselect_tests }}
 
 about:
   home: https://github.com/gristlabs/asttokens
