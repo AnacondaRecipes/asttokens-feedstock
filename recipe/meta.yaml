@@ -1,5 +1,5 @@
 {% set name = "asttokens" %}
-{% set version = "3.0.1" %}
+{% set version = "3.0.2" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 71a4ee5de0bde6a31d64f6b13f2293ac190344478f081c3d1bccfcf5eacb0cb7
+  sha256: 3ecdbd8f2cc195f53ccada3a613538bb5f9ef6f6869129f13e03c30a677b8fe2
 
 build:
   number: 0
@@ -33,6 +33,17 @@ requirements:
 # E   + ast.Expr(value=ast.Constant(value=str() as doc))]
 {% set deselect_tests = "--deselect=tests/test_astroid.py::TestAstroid::test_sys_modules" %}  # [py<314]
 {% set deselect_tests = deselect_tests + " --deselect=tests/test_mark_tokens.py::TestMarkTokens::test_sys_modules" %}  # [py<314]
+# E   RecursionError: maximum recursion depth exceeded during ast construction
+# This test deliberately compiles a 1050-deep nested expression to exercise
+# asttokens' handling of deep recursion. On win-arm64 with Python 3.13 only,
+# CPython's own ast compiler exhausts the platform's C stack before asttokens
+# code ever runs. Python 3.12 and 3.14 pass this test fine on win-arm64, and
+# py3.13 passes on linux-64/linux-aarch64/osx-arm64/win-64 -- this is a known
+# upstream CPython 3.13 regression (the compiler recurses more than 3.12/3.14
+# for the same input), not an asttokens or recipe defect.
+# See: https://github.com/python/cpython/issues/120331
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_mark_tokens.py::TestMarkTokens::test_deep_recursion" %}  # [win and arm64 and py==313]
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_astroid.py::TestAstroid::test_deep_recursion" %}  # [win and arm64 and py==313]
 # E   ModuleNotFoundError: No module named 'astroid.suppliermodule_test'
 {% set ignore_tests = "--ignore=tests/testdata" %}
 
